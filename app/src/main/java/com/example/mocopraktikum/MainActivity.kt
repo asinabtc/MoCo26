@@ -1,4 +1,4 @@
-package com.example.mocopraktikum
+gitpackage com.example.mocopraktikum
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
