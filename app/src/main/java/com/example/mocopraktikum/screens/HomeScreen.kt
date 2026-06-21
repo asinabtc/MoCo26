@@ -1,20 +1,12 @@
 package com.example.mocopraktikum.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,32 +15,52 @@ import com.example.mocopraktikum.components.MapPlaceholder
 import com.example.mocopraktikum.components.ParkingSpotList
 import com.example.mocopraktikum.components.SearchField
 import com.example.mocopraktikum.components.ViewToggle
+import com.example.mocopraktikum.model.ParkingSpot
 import com.example.mocopraktikum.ui.theme.MoCoPraktikumTheme
 
 @Composable
 fun HomeScreen(
+    spots: List<ParkingSpot>,
+    isLoading: Boolean,
     onAddClick: () -> Unit,
-    onSpotClick: () -> Unit
+    onSpotClick: (ParkingSpot) -> Unit
 ) {
     var selectedView by remember { mutableStateOf("Karte") }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAddClick,
-                containerColor = Color.LightGray
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = MaterialTheme.shapes.large
             ) {
-                Text("+", fontSize = 32.sp)
+                Text(
+                    text = "+",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Light
+                )
             }
         }
     ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
+
             Header(title = "ParkSpotter")
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Finde freie Parkplätze in deiner Nähe",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -61,12 +73,46 @@ fun HomeScreen(
                 onViewSelected = { selectedView = it }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            if (selectedView == "Karte") {
-                MapPlaceholder(onSpotClick = onSpotClick)
-            } else {
-                ParkingSpotList(onSpotClick = onSpotClick)
+            Box(modifier = Modifier.fillMaxSize()) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    AnimatedContent(
+                        targetState = selectedView,
+                        transitionSpec = {
+                            fadeIn() togetherWith fadeOut()
+                        },
+                        label = "ViewSwitch"
+                    ) { targetView ->
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.extraLarge,
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(12.dp)
+                                    .fillMaxWidth()
+                                    .heightIn(min = 400.dp)
+                            ) {
+                                if (targetView == "Karte") {
+                                    MapPlaceholder(onSpotClick = { /* placeholder */ })
+                                } else {
+                                    ParkingSpotList(
+                                        spots = spots,
+                                        onSpotClick = onSpotClick
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -77,6 +123,8 @@ fun HomeScreen(
 fun HomeScreenPreview() {
     MoCoPraktikumTheme {
         HomeScreen(
+            spots = emptyList(),
+            isLoading = false,
             onAddClick = {},
             onSpotClick = {}
         )

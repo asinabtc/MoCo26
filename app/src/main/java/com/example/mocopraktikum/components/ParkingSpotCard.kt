@@ -1,88 +1,90 @@
 package com.example.mocopraktikum.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.example.mocopraktikum.model.ParkingSpot
 
 @Composable
 fun ParkingSpotCard(
-    title: String,
-    status: String,
-    distance: String,
-    price: String,
-    color: Color,
+    spot: ParkingSpot,
     onClick: () -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 12.dp)
-            .background(Color.LightGray)
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { onClick() },
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Marker(color = color)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Marker(color = spot.color)
 
-        Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
-        Column {
-            Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-            Text("$distance · $price · Status: $status")
-            Text("zuletzt gemeldet vor ca. 4 Min.")
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = spot.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Text(
+                    text = "${spot.distance} · ${spot.price}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Text(
+                    text = "Status: ${spot.status}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = spot.color,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            
+            Text(
+                text = "vor 4 Min.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.outline
+            )
         }
     }
 }
 
 @Composable
-fun ParkingSpotList(onSpotClick: () -> Unit) {
-    Column {
+fun ParkingSpotList(
+    spots: List<ParkingSpot>,
+    onSpotClick: (ParkingSpot) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Text(
             text = "Parkplätze in der Nähe",
-            fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        Spacer(modifier = Modifier.padding(8.dp))
-
-        ParkingSpotCard(
-            title = "Bahnhofstraße",
-            status = "frei",
-            distance = "200 m",
-            price = "kostenlos",
-            color = Color.Green,
-            onClick = onSpotClick
-        )
-
-        ParkingSpotCard(
-            title = "Innenstadt",
-            status = "mäßig besucht",
-            distance = "450 m",
-            price = "kostenpflichtig",
-            color = Color(0xFFFFA500),
-            onClick = onSpotClick
-        )
-
-        ParkingSpotCard(
-            title = "Supermarkt Parkplatz",
-            status = "frei",
-            distance = "700 m",
-            price = "kostenlos",
-            color = Color.Green,
-            onClick = onSpotClick
-        )
+        spots.forEach { spot ->
+            ParkingSpotCard(
+                spot = spot,
+                onClick = { onSpotClick(spot) }
+            )
+        }
     }
 }

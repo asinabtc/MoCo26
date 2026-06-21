@@ -1,82 +1,117 @@
 package com.example.mocopraktikum.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.mocopraktikum.components.ButtonPlaceholder
-import com.example.mocopraktikum.components.InputPlaceholder
-import com.example.mocopraktikum.components.ScreenTopBar
-import com.example.mocopraktikum.components.SearchField
 import com.example.mocopraktikum.ui.theme.MoCoPraktikumTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddParkingSpotScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onConfirmClick: (String, String, String, Boolean) -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ) {
-        ScreenTopBar(
-            title = "Parkplatz eintragen",
-            onBackClick = onBackClick
-        )
+    var location by remember { mutableStateOf("") }
+    var spots by remember { mutableStateOf("") }
+    var comment by remember { mutableStateOf("") }
+    var isPaid by remember { mutableStateOf<Boolean?>(null) }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SearchField()
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Box(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Parkplatz eintragen") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Text("←", fontSize = 24.sp)
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .background(Color.LightGray),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            Text("Karte", fontSize = 22.sp)
-        }
+            Text(
+                text = "Details zum Parkplatz",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Standort / Name") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
 
-        InputPlaceholder("Standort")
-        InputPlaceholder("Anzahl der Stellplätze")
-        InputPlaceholder("Kommentar, z. B. „Auch für große Autos geeignet“")
+            OutlinedTextField(
+                value = spots,
+                onValueChange = { spots = it },
+                label = { Text("Anzahl der Stellplätze") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextField(
+                value = comment,
+                onValueChange = { comment = it },
+                label = { Text("Kommentar") },
+                placeholder = { Text("z. B. Auch für große Autos geeignet") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                shape = MaterialTheme.shapes.medium
+            )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            ButtonPlaceholder("Kostenpflichtig")
-            ButtonPlaceholder("Kostenlos")
-        }
+            Text(
+                text = "Kosten",
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FilterChip(
+                    selected = isPaid == true,
+                    onClick = { isPaid = true },
+                    label = { Text("Kostenpflichtig") },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = isPaid == false,
+                    onClick = { isPaid = false },
+                    label = { Text("Kostenlos") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            ButtonPlaceholder("Bestätigen")
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { 
+                    onConfirmClick(location, spots, comment, isPaid ?: false)
+                    onBackClick() 
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                enabled = location.isNotBlank() && isPaid != null
+            ) {
+                Text("Bestätigen", modifier = Modifier.padding(8.dp))
+            }
         }
     }
 }
@@ -86,7 +121,8 @@ fun AddParkingSpotScreen(
 fun AddParkingSpotScreenPreview() {
     MoCoPraktikumTheme {
         AddParkingSpotScreen(
-            onBackClick = {}
+            onBackClick = {},
+            onConfirmClick = { _, _, _, _ -> }
         )
     }
 }
