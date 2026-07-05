@@ -20,5 +20,6 @@ data class ParkingSpot(
     val status: String,
     val occupancy: Float, // 0.0 to 1.0
     val comment: String = "",
-    val color: Color = Color.Gray
+    val color: Color = Color.Gray,
+    val isManaged: Boolean = false
 )

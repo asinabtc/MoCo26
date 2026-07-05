@@ -12,11 +12,13 @@ composeBom = "2024.12.01"
 room = "2.8.4"
 ksp = "2.1.0-1.0.29"
 datastore = "1.1.2"
+osmdroid = "6.1.20"
 
 playServicesLocation = "21.3.0"
 
 [libraries]
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
+osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

@@ -23,7 +23,7 @@ import java.util.*
 @Composable
 fun AddParkingSpotScreen(
     onBackClick: () -> Unit,
-    onConfirmClick: (String, String, String, String, Boolean, String, String) -> Unit
+    onConfirmClick: (String, String, String, String, Boolean, String, String, Double?, Double?) -> Unit
 ) {
     val context = LocalContext.current
     var title by remember { mutableStateOf("") }
@@ -33,6 +33,9 @@ fun AddParkingSpotScreen(
     var comment by remember { mutableStateOf("") }
     var isPaid by remember { mutableStateOf<Boolean?>(null) }
     var status by remember { mutableStateOf("frei") }
+    
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
 
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
     
@@ -45,6 +48,8 @@ fun AddParkingSpotScreen(
             try {
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                     location?.let {
+                        latitude = it.latitude
+                        longitude = it.longitude
                         val geocoder = Geocoder(context, Locale.getDefault())
                         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                             geocoder.getFromLocation(it.latitude, it.longitude, 1) { addresses ->
@@ -226,7 +231,7 @@ fun AddParkingSpotScreen(
 
             Button(
                 onClick = { 
-                    onConfirmClick(title, street, zipCode, city, isPaid ?: false, comment, status)
+                    onConfirmClick(title, street, zipCode, city, isPaid ?: false, comment, status, latitude, longitude)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium,
@@ -244,7 +249,7 @@ fun AddParkingSpotScreenPreview() {
     MoCoPraktikumTheme {
         AddParkingSpotScreen(
             onBackClick = {},
-            onConfirmClick = { _, _, _, _, _, _, _ -> }
+            onConfirmClick = { _, _, _, _, _, _, _, _, _ -> }
         )
     }
 }

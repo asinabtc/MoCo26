@@ -42,6 +42,21 @@ fun ParkingSpotCard(
                     fontWeight = FontWeight.Bold
                 )
 
+                if (!spot.isManaged) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        shape = MaterialTheme.shapes.extraSmall,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "Öffentlich (OSM)",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                }
+
                 if (spot.street.isNotBlank() || spot.city.isNotBlank()) {
                     Text(
                         text = "${spot.street}, ${spot.zipCode} ${spot.city}".trim().removePrefix(",").trim(),
@@ -62,6 +77,15 @@ fun ParkingSpotCard(
                     color = spot.color,
                     fontWeight = FontWeight.SemiBold
                 )
+
+                if (spot.latitude == null || spot.longitude == null) {
+                    Text(
+                        text = "⚠️ Nicht auf Karte (Adresse prüfen)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
             Text(

@@ -8,6 +8,7 @@ import android.os.Build
 import com.example.mocopraktikum.data.AppDatabase
 import com.example.mocopraktikum.data.UserPreferencesRepository
 import com.example.mocopraktikum.repository.ParkingRepository
+import org.osmdroid.config.Configuration
 
 class ParkingApplication : Application() {
     val database by lazy { AppDatabase.getDatabase(this) }
@@ -16,6 +17,10 @@ class ParkingApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Initialize OSMDroid
+        Configuration.getInstance().userAgentValue = packageName
+
         createNotificationChannel()
     }
 

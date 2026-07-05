@@ -17,7 +17,23 @@ class UserPreferencesRepository(private val context: Context) {
         val USER_NAME = stringPreferencesKey("user_name")
         val IS_DARK_MODE = booleanPreferencesKey("is_dark_mode")
         val LAST_VIEWED_SPOT_ID = stringPreferencesKey("last_viewed_spot_id")
+        val LAST_LATITUDE = doublePreferencesKey("last_latitude")
+        val LAST_LONGITUDE = doublePreferencesKey("last_longitude")
     }
+
+    val lastLocation: Flow<Pair<Double, Double>?> = context.dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            val lat = preferences[PreferencesKeys.LAST_LATITUDE]
+            val lon = preferences[PreferencesKeys.LAST_LONGITUDE]
+            if (lat != null && lon != null) Pair(lat, lon) else null
+        }
 
     val lastViewedSpotId: Flow<String?> = context.dataStore.data
         .catch { exception ->
@@ -70,6 +86,13 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun saveLastViewedSpotId(id: String) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_VIEWED_SPOT_ID] = id
+        }
+    }
+
+    suspend fun saveLastLocation(lat: Double, lon: Double) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LAST_LATITUDE] = lat
+            preferences[PreferencesKeys.LAST_LONGITUDE] = lon
         }
     }
 }

@@ -11,6 +11,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import android.net.Uri
 import com.example.mocopraktikum.components.Marker
 import com.example.mocopraktikum.model.ParkingSpotWithReviews
 import com.example.mocopraktikum.model.Review
@@ -24,8 +27,10 @@ fun ParkingDetailsScreen(
     spotWithReviews: ParkingSpotWithReviews?,
     onBackClick: () -> Unit,
     onUpdateOccupancy: (String, Float) -> Unit,
-    onAddReview: (Int, String) -> Unit
+    onAddReview: (Int, String) -> Unit,
+    onDeleteSpot: (com.example.mocopraktikum.model.ParkingSpot) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val spot = spotWithReviews?.parkingSpot
     val reviews = spotWithReviews?.reviews ?: emptyList()
 
@@ -42,6 +47,33 @@ fun ParkingDetailsScreen(
     var reviewRating by remember { mutableIntStateOf(5) }
     var reviewText by remember { mutableStateOf("") }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Parkplatz löschen") },
+            text = { Text("Möchtest du '${spot.title}' wirklich unwiderruflich aus deiner Liste löschen?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteSpot(spot)
+                        showDeleteDialog = false
+                        onBackClick()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Löschen")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Abbrechen")
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -49,6 +81,11 @@ fun ParkingDetailsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Text("←", fontSize = 24.sp)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Text("🗑️", fontSize = 20.sp)
                     }
                 }
             )
@@ -89,8 +126,27 @@ fun ParkingDetailsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    DetailRow("Entfernung", spot.distance)
+                    DetailRow("Adresse", "${spot.street}, ${spot.city}")
                     DetailRow("Preis", spot.price)
+
+                    if (spot.latitude != null && spot.longitude != null) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                val gmmIntentUri = Uri.parse("google.navigation:q=${spot.latitude},${spot.longitude}")
+                                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                                mapIntent.setPackage("com.google.android.apps.maps")
+                                context.startActivity(mapIntent)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
+                        ) {
+                            Text("📍 Route starten", color = MaterialTheme.colorScheme.onSecondary)
+                        }
+                    }
                 }
             }
 
@@ -217,7 +273,7 @@ fun ParkingDetailsScreen(
                     onClick = onBackClick,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Zurück")
+                    Text("Abbrechen")
                 }
 
                 Button(
@@ -227,7 +283,7 @@ fun ParkingDetailsScreen(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text("Status Speichern")
+                    Text("Speichern")
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))
