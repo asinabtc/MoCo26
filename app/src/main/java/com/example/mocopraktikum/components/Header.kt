@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun Header(title: String) {
+fun Header(title: String, onProfileClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -30,7 +30,8 @@ fun Header(title: String) {
             modifier = Modifier.size(48.dp),
             shape = CircleShape,
             color = MaterialTheme.colorScheme.primaryContainer,
-            tonalElevation = 2.dp
+            tonalElevation = 2.dp,
+            onClick = onProfileClick
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Text(

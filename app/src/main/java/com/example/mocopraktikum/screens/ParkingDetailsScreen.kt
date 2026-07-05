@@ -12,16 +12,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mocopraktikum.components.Marker
-import com.example.mocopraktikum.model.ParkingSpot
+import com.example.mocopraktikum.model.ParkingSpotWithReviews
+import com.example.mocopraktikum.model.Review
 import com.example.mocopraktikum.ui.theme.MoCoPraktikumTheme
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkingDetailsScreen(
-    spot: ParkingSpot?,
+    spotWithReviews: ParkingSpotWithReviews?,
     onBackClick: () -> Unit,
-    onUpdateOccupancy: (String, Float) -> Unit
+    onUpdateOccupancy: (String, Float) -> Unit,
+    onAddReview: (Int, String) -> Unit
 ) {
+    val spot = spotWithReviews?.parkingSpot
+    val reviews = spotWithReviews?.reviews ?: emptyList()
+
     if (spot == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Parkplatz nicht gefunden")
@@ -30,7 +37,10 @@ fun ParkingDetailsScreen(
     }
 
     var localOccupancy by remember(spot.id) { mutableFloatStateOf(spot.occupancy) }
-    var reportText by remember { mutableStateOf("") }
+    
+    // Review State
+    var reviewRating by remember { mutableIntStateOf(5) }
+    var reviewText by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -48,9 +58,10 @@ fun ParkingDetailsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = spot.title,
                 style = MaterialTheme.typography.headlineMedium,
@@ -80,7 +91,6 @@ fun ParkingDetailsScreen(
 
                     DetailRow("Entfernung", spot.distance)
                     DetailRow("Preis", spot.price)
-                    DetailRow("Gemeldet", "vor ca. 4 Min")
                 }
             }
 
@@ -94,62 +104,120 @@ fun ParkingDetailsScreen(
             )
 
             Spacer(modifier = Modifier.height(32.dp))
-
             HorizontalDivider()
-
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("Aktuellen Status melden", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            // REVIEWS SECTION
+            Text("Bewertungen (${reviews.size})", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             
-            Spacer(modifier = Modifier.height(8.dp))
+            if (reviews.isEmpty()) {
+                Text(
+                    "Noch keine Bewertungen vorhanden.",
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                reviews.sortedByDescending { it.timestamp }.forEach { review ->
+                    ReviewItem(review)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Eigene Bewertung schreiben", fontWeight = FontWeight.Bold)
+                    
+                    Row(modifier = Modifier.padding(vertical = 8.dp)) {
+                        repeat(5) { index ->
+                            val starIndex = index + 1
+                            IconButton(onClick = { reviewRating = starIndex }) {
+                                Text(
+                                    text = if (starIndex <= reviewRating) "★" else "☆",
+                                    fontSize = 28.sp,
+                                    color = if (starIndex <= reviewRating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = reviewText,
+                        onValueChange = { reviewText = it },
+                        label = { Text("Deine Erfahrung...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            if (reviewText.isNotBlank()) {
+                                onAddReview(reviewRating, reviewText)
+                                reviewText = ""
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.End)
+                            .padding(top = 8.dp)
+                    ) {
+                        Text("Senden")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+            HorizontalDivider()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("Status aktualisieren", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf("frei", "mäßig besucht", "voll").forEach { option ->
+                    val isSelected = when(option) {
+                        "frei" -> localOccupancy < 0.3f
+                        "mäßig besucht" -> localOccupancy >= 0.3f && localOccupancy < 0.8f
+                        "voll" -> localOccupancy >= 0.8f
+                        else -> false
+                    }
+                    
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { 
+                            localOccupancy = when(option) {
+                                "frei" -> 0.0f
+                                "mäßig besucht" -> 0.5f
+                                "voll" -> 1.0f
+                                else -> 0.0f
+                            }
+                        },
+                        label = { Text(option.replaceFirstChar { it.uppercase() }) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+
+            Text("Belegung (genauer)", style = MaterialTheme.typography.labelMedium)
             Slider(
                 value = localOccupancy,
                 onValueChange = { localOccupancy = it },
                 valueRange = 0f..1f,
-                steps = 1
+                steps = 4
             )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Leer", style = MaterialTheme.typography.labelMedium)
-                Text("Voll", style = MaterialTheme.typography.labelMedium)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            OutlinedTextField(
-                value = reportText,
-                onValueChange = { reportText = it },
-                label = { Text("Problem melden oder Info hinzufügen") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = { /* Navigation */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary),
-                shape = MaterialTheme.shapes.medium
-            ) {
-                Text("Navigation starten")
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 OutlinedButton(
                     onClick = onBackClick,
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Abbrechen")
+                    Text("Zurück")
                 }
 
                 Button(
@@ -157,13 +225,28 @@ fun ParkingDetailsScreen(
                         onUpdateOccupancy(spot.id, localOccupancy)
                         onBackClick() 
                     },
-                    modifier = Modifier.weight(1f),
-                    shape = MaterialTheme.shapes.medium
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Text("Speichern")
+                    Text("Status Speichern")
                 }
             }
+            Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+@Composable
+fun ReviewItem(review: Review) {
+    val date = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()).format(Date(review.timestamp))
+    
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("★".repeat(review.rating), color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = date, style = MaterialTheme.typography.labelSmall)
+        }
+        Text(text = review.text, style = MaterialTheme.typography.bodyMedium)
+        HorizontalDivider(modifier = Modifier.padding(top = 8.dp), thickness = 0.5.dp)
     }
 }
 
@@ -183,9 +266,10 @@ fun DetailRow(label: String, value: String) {
 fun ParkingDetailsScreenPreview() {
     MoCoPraktikumTheme {
         ParkingDetailsScreen(
-            spot = null,
+            spotWithReviews = null,
             onBackClick = {},
-            onUpdateOccupancy = { _, _ -> }
+            onUpdateOccupancy = { _, _ -> },
+            onAddReview = { _, _ -> }
         )
     }
 }

@@ -42,6 +42,14 @@ fun ParkingSpotCard(
                     fontWeight = FontWeight.Bold
                 )
 
+                if (spot.street.isNotBlank() || spot.city.isNotBlank()) {
+                    Text(
+                        text = "${spot.street}, ${spot.zipCode} ${spot.city}".trim().removePrefix(",").trim(),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 Text(
                     text = "${spot.distance} · ${spot.price}",
                     style = MaterialTheme.typography.bodyMedium,

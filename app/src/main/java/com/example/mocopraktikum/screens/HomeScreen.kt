@@ -23,7 +23,8 @@ fun HomeScreen(
     spots: List<ParkingSpot>,
     isLoading: Boolean,
     onAddClick: () -> Unit,
-    onSpotClick: (ParkingSpot) -> Unit
+    onSpotClick: (ParkingSpot) -> Unit,
+    onProfileClick: () -> Unit
 ) {
     var selectedView by remember { mutableStateOf("Karte") }
 
@@ -52,7 +53,7 @@ fun HomeScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
 
-            Header(title = "ParkSpotter")
+            Header(title = "ParkSpotter", onProfileClick = onProfileClick)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -126,7 +127,8 @@ fun HomeScreenPreview() {
             spots = emptyList(),
             isLoading = false,
             onAddClick = {},
-            onSpotClick = {}
+            onSpotClick = {},
+            onProfileClick = {}
         )
     }
 }
