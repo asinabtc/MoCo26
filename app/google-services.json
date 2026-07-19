@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "902982773826",
+    "project_id": "parkspotter-4c243",
+    "storage_bucket": "parkspotter-4c243.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902982773826:android:f3440590986d9ab05991db",
+        "android_client_info": {
+          "package_name": "com.example.mocopraktikum"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO27XrY_b0t37ZrHBIweEC_Xmoz2t8hvE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

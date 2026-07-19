@@ -7,19 +7,30 @@ import android.content.Context
 import android.os.Build
 import com.example.mocopraktikum.data.AppDatabase
 import com.example.mocopraktikum.data.UserPreferencesRepository
+import com.example.mocopraktikum.data.remote.ParkingRemoteDataSource
 import com.example.mocopraktikum.repository.ParkingRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.osmdroid.config.Configuration
 
 class ParkingApplication : Application() {
     val database by lazy { AppDatabase.getDatabase(this) }
-    val repository by lazy { ParkingRepository(database.parkingSpotDao()) }
+    val repository by lazy { ParkingRepository(database.parkingSpotDao(), ParkingRemoteDataSource()) }
     val userPreferencesRepository by lazy { UserPreferencesRepository(this) }
+
+    // App-weiter Scope für die dauerhafte Firestore-Synchronisation
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialize OSMDroid
-        Configuration.getInstance().userAgentValue = packageName
+        // Eindeutiger User-Agent (NICHT "com.example.*", sonst blockt OpenStreetMap mit HTTP 403)
+        Configuration.getInstance().userAgentValue = "ParkSpotter/1.0 (meryemselo13@gmail.com)"
+
+        // Startet die Synchronisation der geteilten Daten (Parkplätze + Bewertungen) mit Firestore
+        repository.startSync(applicationScope)
 
         createNotificationChannel()
     }

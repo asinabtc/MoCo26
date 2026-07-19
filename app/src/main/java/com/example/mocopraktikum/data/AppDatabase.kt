@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.example.mocopraktikum.model.ParkingSpot
 import com.example.mocopraktikum.model.Review
 
-@Database(entities = [ParkingSpot::class, Review::class], version = 4, exportSchema = false)
+@Database(entities = [ParkingSpot::class, Review::class], version = 5, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun parkingSpotDao(): ParkingSpotDao
